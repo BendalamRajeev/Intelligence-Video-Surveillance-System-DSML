@@ -129,7 +129,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-Prem Sai Bollamoni - [GitHub](https://github.com/PremSaiBollamoni) - [LinkedIn](www.linkedin.com/in/prem-sai-bollamoni-817a18348)
+Rajeev Bendalam - [GitHub](https://github.com/BendalamRajeev) - [LinkedIn](https://www.linkedin.com/in/bendalam-rajeev-392170274/)
 
 ## 🙏 Acknowledgments
 
