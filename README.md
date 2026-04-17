@@ -37,7 +37,7 @@
 
 1. Clone the repository:
 bash
-git clone https://github.com/yourusername/video-surveillance-system.git
+git clone https://github.com/BendalamRajeev/Intelligence-Video-Surveillance-System-DSML.git
 cd video-surveillance-system
 
 
