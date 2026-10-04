@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+# model weights (r3d_model.pth is produced by train.py; YOLO weights auto-download)
+*.pth
+*.pt
+# dataset and generated frames
+dataset/
+processed_frames/
+gradcam_output.mp4

@@ -1,138 +1,113 @@
 # 🎥 Intelligent Video Surveillance System
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-2.8%2B-orange)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.22%2B-red)
-![OpenCV](https://img.shields.io/badge/OpenCV-4.5%2B-green)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-R3D--18-ee4c2c)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x-green)
+![YOLOv5](https://img.shields.io/badge/Ultralytics-YOLOv5-purple)
+![Streamlit](https://img.shields.io/badge/Streamlit-app-red)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-> An advanced deep learning-based video surveillance system that automatically detects fights, theft, and violence from video footage in real-time.
-
-<p align="center">
-  <img src="docs/assets/demo.gif" alt="Demo Preview" width="600"/>
-</p>
-
-## 🌟 Features
-
-- 🔍 *Real-time Detection* of:
-  - Fights and Physical Violence
-  - Theft Activities
-  - Suspicious Behavior
-- 🎯 *High Accuracy* using state-of-the-art deep learning models
-- 🖥 *User-Friendly Interface* built with Streamlit
-- 📊 *Analytics Dashboard* for incident tracking
-- ⚡ *Fast Processing* with optimized inference
-- 📱 *Alert System* for immediate notification
-- 🎬 *Video Management* tools for clip extraction
-
-## 🛠 Tech Stack
-
-- *Deep Learning*: TensorFlow, OpenCV
-- *Frontend*: Streamlit
-- *Data Processing*: NumPy, Pandas
-- *Visualization*: Matplotlib, Seaborn
-- *Development*: Python 3.8+
-
-## 📦 Installation
-
-1. Clone the repository:
-bash
-git clone https://github.com/BendalamRajeev/Intelligence-Video-Surveillance-System-DSML.git
-cd video-surveillance-system
-
-
-2. Create and activate virtual environment:
-bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# OR
-.\venv\Scripts\activate  # Windows
-
-
-3. Install dependencies:
-bash
-pip install -r requirements.txt
-
-
-## 🚀 Quick Start
-
-1. Start the Streamlit app:
-bash
-streamlit run src/app.py
-
-
-2. Open your browser and navigate to http://localhost:8501
-
-3. Upload a video file and start detection!
-
-## 🎓 Model Training
-
-1. Download the datasets:
-   - [RWF-2000 Dataset](https://github.com/mchengny/RWF2000-Video-Database-for-Violence-Detection)
-   - [Real Life Violence Situations Dataset](https://www.kaggle.com/datasets/mohamedmustafa/real-life-violence-situations-dataset)
-
-2. Prepare the data:
-bash
-python src/data/prepare_dataset.py
-
-
-3. Train the model:
-bash
-python src/models/train.py
-
-
-## 📁 Project Structure
-
-
-video-surveillance-system/
-├── src/
-│   ├── app.py                # Streamlit application
-│   ├── config.py             # Configuration settings
-│   ├── data/                 # Data processing scripts
-│   ├── models/               # Model architecture and training
-│   └── utils/                # Helper functions
-├── data/                     # Dataset storage
-│   ├── raw/                  # Original dataset
-│   └── processed/            # Processed frames
-├── models/                   # Saved model weights
-├── logs/                     # Training logs
-├── tests/                    # Unit tests
-└── docs/                     # Documentation
-
+Deep-learning system that detects **violence in video**. It classifies short clips with a 3D CNN (R3D-18), shows *when* violence happens with a per-clip probability timeline, and shows *where* it happens with Grad-CAM heatmaps and YOLOv5 person boxes. Videos are uploaded and analysed through a Streamlit web app.
 
 ## 📊 Results
 
-| Model         | Accuracy | F1 Score | Processing Speed |
-|--------------|----------|-----------|-----------------|
-| CNN + LSTM   | 92.5%    | 0.91     | 30 FPS         |
-| 3D CNN       | 94.2%    | 0.93     | 25 FPS         |
+R3D-18, evaluated on **369 held-out test videos** from the Real Life Violence Situations dataset ([`evaluate.py`](evaluate.py), [`evaluation_metrics.csv`](evaluation_metrics.csv)):
 
-## 🔧 Configuration
+| Accuracy | Precision | Recall | F1 score | Test loss |
+|---|---|---|---|---|
+| **96.75%** | 96.53% | **97.50%** | **0.970** | 0.086 |
 
-Modify config.py to adjust:
-- Model parameters
-- Detection thresholds
-- Alert settings
-- Video processing options
+<p align="center">
+  <img src="confusion_matrix.png" alt="Confusion matrix" width="380"/>
+  <img src="r3d_training_graph.png" alt="Training loss and accuracy" width="520"/>
+</p>
 
-## 🤝 Contributing
+Confusion matrix: 162 true negatives, 7 false positives, 5 false negatives, 195 true positives.
 
-1. Fork the repository
-2. Create your feature branch (git checkout -b feature/AmazingFeature)
-3. Commit changes (git commit -m 'Add AmazingFeature')
-4. Push to branch (git push origin feature/AmazingFeature)
-5. Open a Pull Request
+## ✨ Features
 
-## 📄 License
+- **Violence classification** — Kinetics-400–pretrained R3D-18, fine-tuned with a single binary output on 16-frame clips (112×112)
+- **Whole-video analysis** — sliding window (16 frames, stride 8) over the uploaded video, with an overall verdict from the clip probabilities
+- **Probability timeline** — chart of violence probability for every clip
+- **Grad-CAM explanations** — heatmaps from the last 3D convolutional block showing which regions drove the prediction
+- **Person detection** — YOLOv5 marks people; those overlapping the Grad-CAM hotspot are labelled *"VIOLENT – Human"*, and the label stays on that person for the following frames
+- **Annotated video export** — downloadable MP4 with heatmaps and person boxes
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 🧠 How it works
+
+1. **Data preparation** ([`data_preparation.ipynb`](data_preparation.ipynb)) — extracts every 5th frame of each video with OpenCV, resizes to 112×112, and splits videos 80/20 (stratified) into `train` and `test`
+2. **Dataset** ([`dataset.py`](dataset.py)) — loads the first 16 frames of each video as one clip, shaped `[C, T, H, W]`
+3. **Training** ([`train.py`](train.py)) — 20 epochs, Adam (lr 1e-4), batch size 4, `BCEWithLogitsLoss`; saves `r3d_model.pth` and the training graph
+4. **Evaluation** ([`evaluate.py`](evaluate.py)) — accuracy, precision, recall, F1 and confusion matrix on the test split
+5. **Inference apps** — Streamlit apps that run the sliding-window model over an uploaded video, then add Grad-CAM and YOLOv5 on clips classified as violent
+
+## 📁 Project structure
+
+```
+├── data_preparation.ipynb        # Frame extraction + train/test split (also contains a CNN-LSTM baseline experiment)
+├── dataset.py                    # 16-frame clip dataset
+├── models/
+│   └── three_d_cnn_model.py      # R3D-18 violence classifier
+├── train.py                      # Fine-tuning script
+├── evaluate.py                   # Test-set metrics + confusion matrix
+├── model_summary.py              # Prints the model architecture (torchinfo)
+├── predict_video.py              # App: sliding-window detection, average/max probability verdict
+├── predict_video1.py             # App: detection with segment-based verdict and progress bar
+├── predict_video_bounding_box.py # App: detection + Grad-CAM frame panels
+├── bounding_enhance2.py          # App: Grad-CAM + YOLOv5 person boxes, annotated MP4 export
+├── evaluation_metrics.csv        # Saved test metrics
+├── confusion_matrix.png
+├── r3d_training_graph.png
+└── requirements.txt
+```
+
+## 📦 Setup
+
+```bash
+git clone https://github.com/BendalamRajeev/Intelligence-Video-Surveillance-System-DSML.git
+cd Intelligence-Video-Surveillance-System-DSML
+
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+A CUDA GPU is recommended for training; inference also runs on CPU.
+
+## 🚀 Usage
+
+1. **Get the data** — download the [Real Life Violence Situations dataset](https://www.kaggle.com/datasets/mohamedmustafa/real-life-violence-situations-dataset) (1,000 violent and 1,000 non-violent videos).
+2. **Prepare frames** — run `data_preparation.ipynb`, pointing `prepare_dataset()` at the dataset folder. This creates `dataset/train` and `dataset/test`, each with `violent/` and `non_violent/` frame folders.
+3. **Train** — `python train.py` (writes `r3d_model.pth`).
+4. **Evaluate** — `python evaluate.py`.
+5. **Run an app**, for example the full Grad-CAM + YOLO version:
+   ```bash
+   streamlit run bounding_enhance2.py
+   ```
+   Then open http://localhost:8501, upload an `.mp4`/`.avi` video and start detection. YOLOv5 weights download automatically on first run.
+
+> Model weights are not included in the repository (`r3d_model.pth` is ~133 MB); train the model with step 3 to produce them.
+
+## ⚠️ Limitations
+
+- Works on **uploaded video files**; live camera streams are not supported
+- Binary classification only (violent / non-violent) — no theft or other activity classes
+- Person labelling is overlap-based, not identity tracking
+- Training clips use every 5th frame, while inference uses consecutive frames
+
+## 🛠 Tech stack
+
+PyTorch · torchvision (R3D-18) · OpenCV · Ultralytics YOLOv5 · scikit-learn · Streamlit · NumPy · pandas · Matplotlib
 
 ## 👨‍💻 Author
 
-Rajeev Bendalam - [GitHub](https://github.com/BendalamRajeev) - [LinkedIn](https://www.linkedin.com/in/bendalam-rajeev-392170274/)
+**Bendalam Rajeev** — [GitHub](https://github.com/BendalamRajeev) · [LinkedIn](https://www.linkedin.com/in/bendalam-rajeev-392170274/)
+
+## 📄 License
+
+MIT — see [LICENSE](LICENSE).
 
 ## 🙏 Acknowledgments
 
-- RWF-2000 Dataset creators
-- Real Life Violence Situations Dataset contributors
-- Open-source community
+- [Real Life Violence Situations dataset](https://www.kaggle.com/datasets/mohamedmustafa/real-life-violence-situations-dataset)
+- torchvision video models (R3D-18, Kinetics-400 pretrained weights) and Ultralytics YOLOv5
